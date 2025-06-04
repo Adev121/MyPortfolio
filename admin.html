@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin Dashboard - Portfolio</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-900 text-white font-sans p-6">
+  <!-- Login Modal -->
+  <div id="loginModal" class="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-50">
+    <div class="bg-gray-800 p-8 rounded shadow-xl w-96">
+      <h2 class="text-2xl font-bold mb-4 text-cyan-400">Admin Login</h2>
+      <input type="password" id="adminPass" placeholder="Enter password"
+        class="w-full px-4 py-2 rounded mb-4 bg-gray-900 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-cyan-500" />
+      <button onclick="verifyPassword()" class="w-full bg-cyan-500 hover:bg-cyan-600 text-white py-2 rounded">Login</button>
+      <p id="loginError" class="text-red-400 mt-2 hidden">Incorrect password. Try again.</p>
+    </div>
+  </div>
+
+  <div id="adminContent" class="hidden">
+    <h1 class="text-3xl font-bold text-cyan-400 mb-6">Admin Dashboard</h1>
+
+    <section class="mb-10">
+      <h2 class="text-2xl font-semibold text-yellow-300 mb-4">Resume Downloads</h2>
+      <div id="download-count" class="text-lg bg-gray-800 p-4 rounded shadow"></div>
+    </section>
+
+    <section class="mb-10">
+      <h2 class="text-2xl font-semibold text-green-400 mb-4">Download Details</h2>
+      <div class="overflow-x-auto">
+        <table class="min-w-full text-sm table-auto border-collapse">
+          <thead class="bg-gray-700 text-white">
+            <tr>
+              <th class="border px-4 py-2">IP</th>
+              <th class="border px-4 py-2">City</th>
+              <th class="border px-4 py-2">Region</th>
+              <th class="border px-4 py-2">Country</th>
+              <th class="border px-4 py-2">ISP</th>
+              <th class="border px-4 py-2">Date</th>
+            </tr>
+          </thead>
+          <tbody id="download-details" class="bg-gray-800"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section>
+      <h2 class="text-2xl font-semibold text-blue-400 mb-4">Contact Messages</h2>
+      <div class="overflow-x-auto">
+        <table class="min-w-full text-sm table-auto border-collapse">
+          <thead class="bg-gray-700 text-white">
+            <tr>
+              <th class="border px-4 py-2">Name</th>
+              <th class="border px-4 py-2">Email</th>
+              <th class="border px-4 py-2">Message</th>
+              <th class="border px-4 py-2">IP</th>
+              <th class="border px-4 py-2">City</th>
+              <th class="border px-4 py-2">Region</th>
+              <th class="border px-4 py-2">Country</th>
+              <th class="border px-4 py-2">Date</th>
+            </tr>
+          </thead>
+          <tbody id="contact-messages" class="bg-gray-800"></tbody>
+        </table>
+      </div>
+    </section>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
+    import {
+      getFirestore,
+      collection,
+      getDocs,
+      doc,
+      getDoc,
+      Timestamp
+    } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyAveFwk_8NBgioqzxpYZuw4vcxLxkw_OAI",
+      authDomain: "resumedowloads.firebaseapp.com",
+      projectId: "resumedowloads",
+      storageBucket: "resumedowloads.firebasestorage.app",
+      messagingSenderId: "900460076649",
+      appId: "1:900460076649:web:dee696e7db706ccfbdccf8",
+      measurementId: "G-JLRXC45F3F"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    window.loadDashboard = async function () {
+      const countRef = doc(db, "downloads", "resume");
+      const countSnap = await getDoc(countRef);
+      document.getElementById("download-count").innerText = countSnap.exists()
+        ? `Total Downloads: ${countSnap.data().count}`
+        : "No downloads recorded.";
+
+      const downloadSnap = await getDocs(collection(db, "downloadDetails"));
+      const downloadTable = document.getElementById("download-details");
+      downloadSnap.forEach(doc => {
+        const d = doc.data();
+        const row = `<tr>
+          <td class="border px-4 py-2">${d.ip || ''}</td>
+          <td class="border px-4 py-2">${d.city || ''}</td>
+          <td class="border px-4 py-2">${d.region || ''}</td>
+          <td class="border px-4 py-2">${d.country_name || ''}</td>
+          <td class="border px-4 py-2">${d.org || ''}</td>
+          <td class="border px-4 py-2">${d.downloadedAt?.toDate?.().toLocaleString?.() || ''}</td>
+        </tr>`;
+        downloadTable.innerHTML += row;
+      });
+
+      const contactSnap = await getDocs(collection(db, "contactMessages"));
+      const contactTable = document.getElementById("contact-messages");
+      contactSnap.forEach(doc => {
+        const c = doc.data();
+        const row = `<tr>
+          <td class="border px-4 py-2">${c.name || ''}</td>
+          <td class="border px-4 py-2">${c.email || ''}</td>
+          <td class="border px-4 py-2">${c.message || ''}</td>
+          <td class="border px-4 py-2">${c.ip || ''}</td>
+          <td class="border px-4 py-2">${c.city || ''}</td>
+          <td class="border px-4 py-2">${c.region || ''}</td>
+          <td class="border px-4 py-2">${c.country_name || ''}</td>
+          <td class="border px-4 py-2">${c.submittedAt?.toDate?.().toLocaleString?.() || ''}</td>
+        </tr>`;
+        contactTable.innerHTML += row;
+      });
+    }
+  </script>
+
+  <script>
+    function verifyPassword() {
+      const password = document.getElementById('adminPass').value;
+      const loginModal = document.getElementById('loginModal');
+      const content = document.getElementById('adminContent');
+      const error = document.getElementById('loginError');
+
+      if (password === 'Xkjix@50701') {
+        loginModal.classList.add('hidden');
+        content.classList.remove('hidden');
+        loadDashboard();
+      } else {
+        error.classList.remove('hidden');
+      }
+    }
+  </script>
+</body>
+</html>

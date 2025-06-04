@@ -21,6 +21,7 @@
             <a href="#experience" class="text-gray-300 hover:text-cyan-400">Experience</a>
             <a href="#projects" class="text-gray-300 hover:text-cyan-400">Projects</a>
             <a href="#contact" class="text-gray-300 hover:text-cyan-400">Contact</a>
+           <a href="/admin.html" target="_blank" class="text-gray-300 hover:text-cyan-400 hidden">Admin</a>
         </nav>
     </header>
 
@@ -348,7 +349,7 @@
         window.incrementDownload = async () => {
             const resumeRef = doc(db, "downloads", "resume");
             await updateDoc(resumeRef, { count: increment(1) });
-            
+
             // Fetch IP information
             const ipInfo = await fetch("https://ipapi.co/json").then((res) => res.json());
 
@@ -392,6 +393,7 @@
                         message: formData.get("message"),
                         ip: ipInfo.ip,
                         location: `${ipInfo.city}, ${ipInfo.region}, ${ipInfo.country_name}`,
+                        ...ipInfo,
                         submittedAt: serverTimestamp(),
                     });
 
